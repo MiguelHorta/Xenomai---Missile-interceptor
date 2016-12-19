@@ -20,14 +20,15 @@ typedef struct
 } City;
 typedef struct
 {
-	City* cities;
-	uint8_t n_cities;
+	City city;
 
-	Radar* radars;
-	uint8_t n_radars;
+	Radar radar;
 
-	LaunchingPad* launching_pads;
-	uint8_t n_launching_pads;
+	LaunchingPad ally_lp;
+	LaunchingPad enemy_lp;
+
+	double width;
+	double height;
 
 } Scenary;
 

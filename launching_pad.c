@@ -1,10 +1,15 @@
 #include "launching_pad.h"
+#include "scenary.h"
 
 #include <native/task.h>
 #include <native/timer.h>
+#include <math.h>
 
 void launching_pads_task()
 {
+  extern Scenary scenary;
+  Missile* enemy_missile = &scenary.enemy_lp.missile;
+  Missile* ally_missile = &scenary.ally_lp.missile;
   RT_TASK *curtask;
   RT_TASK_INFO curtaskinfo;
 	int err;
@@ -33,6 +38,19 @@ void launching_pads_task()
       rt_printf("%s Measured period (ns)= %lu\n", curtaskinfo.name, ta-to);
     }
     to=ta;
+    if(enemy_missile->launched > 0 && !enemy_missile->destroyed)
+    {
+      double t = (double)( (ta - enemy_missile->launched) / 1000000000.0 );
+      enemy_missile->x = enemy_missile->vx * t + scenary.enemy_lp.x;
+      enemy_missile->y = enemy_missile->vy * t - 5 * pow( t, 2 ) + scenary.enemy_lp.y;
+    }
+
+    if(ally_missile->launched > 0 && !ally_missile->destroyed)
+    {
+      double t = (double)( (ta - ally_missile->launched) / 1000000000.0 );
+      ally_missile->x = ally_missile->vx * t + scenary.ally_lp.x;
+      ally_missile->y = ally_missile->vy * t - 5 * pow( t, 2 ) + scenary.ally_lp.y;
+    }
   }
   return;
 }

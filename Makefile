@@ -15,8 +15,8 @@ endif
 # Get compiler and linker flags
 TARGET = simulator
 CC := $(shell xeno-config --cc)
-CFLAGS := $(shell xeno-config --skin=native --cflags)
-LIBS := -Xlinker -rpath -Xlinker /usr/xenomai/lib
+CFLAGS := $(shell xeno-config --skin=native --cflags) $(shell sdl2-config --cflags)
+LIBS := -lm -Xlinker -rpath -Xlinker /usr/xenomai/lib $(shell sdl2-config --libs)
 LDFLAGS := -lnative $(shell xeno-config --skin=native --ldflags)
 
 .PHONY: default all clean

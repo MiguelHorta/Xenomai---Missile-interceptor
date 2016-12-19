@@ -6,6 +6,7 @@
 #include <native/timer.h>
 #include <native/sem.h>
 #include <rtdk.h>
+#include <math.h>
 
 #include "radar.h"
 #include "launching_pad.h"
@@ -17,6 +18,8 @@
 static RT_TASK Tlaunching_pads;
 static RT_TASK Tradars;
 static RT_TASK Tupdate_screen;
+
+Scenary scenary;
 
 /*
 * Catches CTRL + C to allow a controlled termination of the application
@@ -43,6 +46,41 @@ int main(int argc, char *argv[])
 
 	/* Lock memory to prevent paging */
 	mlockall(MCL_CURRENT|MCL_FUTURE);
+
+	scenary.height = 500;
+	scenary.width = 1000;
+	scenary.city.x = 1000;
+	scenary.city.y = 0;
+	scenary.city.is_enemy = false;
+	scenary.radar.x = 800;
+	scenary.radar.y = 0;
+	scenary.radar.extent = 500;
+	// scenary.radar.dx = { 0 };
+	// scenary.radar.dy = { 0 };
+	scenary.radar.ndet = 0;
+	scenary.enemy_lp.x = 0;
+	scenary.enemy_lp.y = 0;
+	scenary.enemy_lp.is_enemy = true;
+	scenary.enemy_lp.missile.x = 0;
+	scenary.enemy_lp.missile.y = 0;
+	scenary.enemy_lp.missile.vx = scenary.width/(2*sqrt(scenary.height/5));
+	scenary.enemy_lp.missile.vy = 10 * sqrt(scenary.height/5);
+	scenary.enemy_lp.missile.launched = rt_timer_read();
+	scenary.enemy_lp.missile.destroyed = false;
+	scenary.enemy_lp.missile.targed = false;
+
+	scenary.ally_lp.x = 800;
+	scenary.ally_lp.y = 0;
+	scenary.ally_lp.is_enemy = true;
+	scenary.ally_lp.missile.x = 800;
+	scenary.ally_lp.missile.y = 0;
+	scenary.ally_lp.missile.vx = 0;
+	scenary.ally_lp.missile.vy = 0;
+	scenary.ally_lp.missile.init_speed = 0;
+	scenary.ally_lp.missile.init_angle = 0;
+	scenary.ally_lp.missile.launched = false;
+	scenary.ally_lp.missile.destroyed = false;
+	scenary.ally_lp.missile.targed = 0;
 
 	err = rt_task_create(&Tlaunching_pads, Tlaunching_padsNAME , TASK_STKSZ, Tlaunching_padsPRI, TASK_MODE);
   if(err)

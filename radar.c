@@ -2,9 +2,16 @@
 
 #include <native/task.h>
 #include <native/timer.h>
+#include "scenary.h"
+#include <math.h>
+
+extern Scenary scenary;
 
 void radars_task()
 {
+  Missile* missile = &scenary.enemy_lp.missile;
+  Missile* ally_missile = &scenary.ally_lp.missile;
+  Radar* radar = &scenary.radar;
   RT_TASK *curtask;
   RT_TASK_INFO curtaskinfo;
 	int err;
@@ -33,6 +40,20 @@ void radars_task()
       rt_printf("%s Measured period (ns)= %lu\n", curtaskinfo.name, ta-to);
     }
     to=ta;
+
+    if((pow(missile->x - radar->x, 2) + pow(missile->y - radar->y, 2)) <= pow(radar->extent, 2) && !missile->targed )
+    {
+      radar->dx[radar->ndet] = missile->x;
+      radar->dy[radar->ndet] = missile->y;
+      if(radar->ndet == 2)
+      {
+        missile->targed = true;
+        ally_missile->vx = -30;
+        ally_missile->vy = 80;
+        ally_missile->launched = rt_timer_read();
+      }else
+        radar->ndet++;
+    }
   }
   return;
 }
