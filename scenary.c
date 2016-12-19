@@ -5,11 +5,18 @@
 
 #include <SDL2/SDL.h>
 extern Scenary scenary;
+SDL_Window* _pwindow = NULL;
+// Setup renderer
+SDL_Renderer* _prenderer = NULL;
+
+void drawBackground();
+void drawMissile(int x, int y);
+void drawExplosion(int x, int y);
+void drawRadar(int x, int y, int);
 
 void update_screen_task()
 {
-  SDL_Window* window = NULL;
-  window = SDL_CreateWindow
+  _pwindow = SDL_CreateWindow
   (
       "STR Final Project", SDL_WINDOWPOS_UNDEFINED,
       SDL_WINDOWPOS_UNDEFINED,
@@ -17,13 +24,7 @@ void update_screen_task()
       scenary.height,
       SDL_WINDOW_SHOWN
   );
-
-  // Setup renderer
-  SDL_Renderer* renderer = NULL;
-  renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
-  SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
-  SDL_RenderClear( renderer );
-
+  _prenderer =  SDL_CreateRenderer( _pwindow, -1, SDL_RENDERER_ACCELERATED);
   RT_TASK *curtask;
   RT_TASK_INFO curtaskinfo;
 	int err;
@@ -50,10 +51,10 @@ void update_screen_task()
       rt_printf("%s overrun!!!\n", curtaskinfo.name);
       break;
     }
-    if(to!=0)
-    {
-      rt_printf("%s Measured period (ns)= %lu\n", curtaskinfo.name, ta-to);
-    }
+    // if(to!=0)
+    // {
+    //   rt_printf("%s Measured period (ns)= %lu\n", curtaskinfo.name, ta-to);
+    // }
     to=ta;
     while( SDL_PollEvent( &e ) != 0 )
     {
@@ -65,18 +66,70 @@ void update_screen_task()
     }
 
   //Update the surface
-  SDL_UpdateWindowSurface( window );
-  SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0x00, 0xFF );
-
-  SDL_RenderDrawPoint( renderer, scenary.enemy_lp.missile.x, scenary.height - scenary.enemy_lp.missile.y);
-  SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );
-  rt_printf("%f - %f\n", scenary.ally_lp.missile.x, scenary.ally_lp.missile.y);
-
-  SDL_RenderDrawPoint( renderer, scenary.ally_lp.missile.x, scenary.height - scenary.ally_lp.missile.y);
-  SDL_RenderPresent( renderer );
+  SDL_UpdateWindowSurface( _pwindow );
+  drawBackground();
+  drawMissile(scenary.enemy_lp.missile.x, scenary.enemy_lp.missile.y);
+  drawMissile(scenary.ally_lp.missile.x, scenary.ally_lp.missile.y);
+  drawRadar(scenary.radar.x, scenary.radar.y, scenary.radar.extent);
+  if(scenary.ally_lp.missile.destroyed > 0)
+  {
+    drawExplosion(scenary.ally_lp.missile.x, scenary.ally_lp.missile.y);
+  }
+  SDL_RenderPresent( _prenderer );
   }
 
-  SDL_DestroyWindow(window);
+  SDL_DestroyWindow(_pwindow);
   SDL_Quit();
   return;
+}
+
+void drawBackground()
+{
+  SDL_SetRenderDrawColor( _prenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+  SDL_RenderClear( _prenderer );
+}
+
+void drawMissile(int x, int y)
+{
+  SDL_Rect missile;
+  missile.x = x;
+  missile.y = scenary.height - y;
+  missile.w = 6;
+  missile.h = 6;
+  SDL_SetRenderDrawColor( _prenderer, 0x00, 0x00, 0x00, 0xFF );
+  SDL_RenderFillRect( _prenderer, &missile);
+}
+void drawExplosion(int x, int y)
+{
+  SDL_Rect missile;
+  missile.x = x-3;
+  missile.y = scenary.height - y-6;
+  missile.w = 24;
+  missile.h = 24;
+  SDL_SetRenderDrawColor( _prenderer, 0xFF, 0x00, 0x00, 0xFF );
+  SDL_RenderFillRect( _prenderer, &missile);
+}
+void drawRadar(int x, int y, int extent)
+{
+  SDL_Rect missile;
+  missile.x = x;
+  missile.y = scenary.height - y-4;
+  missile.w = 12;
+  missile.h = 4;
+  SDL_SetRenderDrawColor( _prenderer, 0x00, 0xFF, 0x00, 0xFF );
+  SDL_RenderFillRect( _prenderer, &missile);
+
+  int centrex=x,centrey=y;// centre of circle in pixel coords
+  int radius=extent;
+
+  float two_pi=6.283f;
+
+  float angle_inc=1.0f/radius;
+  float angle;
+  float xpos, ypos;
+  for(angle=0.0f; angle<= two_pi;angle+=angle_inc){
+      xpos=centrex+radius*cos(angle);
+      ypos=centrey+radius*sin(angle);
+      SDL_RenderDrawPoint(_prenderer, xpos, scenary.height-ypos);
+  }
 }

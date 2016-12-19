@@ -18,8 +18,8 @@ typedef struct Missile
 	double init_speed, init_angle;
 
 	RTIME launched;
-	bool destroyed;
-	bool targed;
+	RTIME destroyed;
+	RTIME targed;
 
 } Missile;
 

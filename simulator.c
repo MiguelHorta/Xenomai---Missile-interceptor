@@ -7,6 +7,7 @@
 #include <native/sem.h>
 #include <rtdk.h>
 #include <math.h>
+#include <SDL2/SDL.h>
 
 #include "radar.h"
 #include "launching_pad.h"
@@ -47,6 +48,16 @@ int main(int argc, char *argv[])
 	/* Lock memory to prevent paging */
 	mlockall(MCL_CURRENT|MCL_FUTURE);
 
+	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
+	{
+		rt_printf(
+			"\nUnable to initialize SDL:  %s\n",
+			SDL_GetError()
+		);
+		return 1;
+	}
+	atexit(SDL_Quit);
+
 	scenary.height = 500;
 	scenary.width = 1000;
 	scenary.city.x = 1000;
@@ -66,8 +77,8 @@ int main(int argc, char *argv[])
 	scenary.enemy_lp.missile.vx = scenary.width/(2*sqrt(scenary.height/5));
 	scenary.enemy_lp.missile.vy = 10 * sqrt(scenary.height/5);
 	scenary.enemy_lp.missile.launched = rt_timer_read();
-	scenary.enemy_lp.missile.destroyed = false;
-	scenary.enemy_lp.missile.targed = false;
+	scenary.enemy_lp.missile.destroyed = 0;
+	scenary.enemy_lp.missile.targed = 0;
 
 	scenary.ally_lp.x = 800;
 	scenary.ally_lp.y = 0;
@@ -78,8 +89,8 @@ int main(int argc, char *argv[])
 	scenary.ally_lp.missile.vy = 0;
 	scenary.ally_lp.missile.init_speed = 0;
 	scenary.ally_lp.missile.init_angle = 0;
-	scenary.ally_lp.missile.launched = false;
-	scenary.ally_lp.missile.destroyed = false;
+	scenary.ally_lp.missile.launched = 0;
+	scenary.ally_lp.missile.destroyed = 0;
 	scenary.ally_lp.missile.targed = 0;
 
 	err = rt_task_create(&Tlaunching_pads, Tlaunching_padsNAME , TASK_STKSZ, Tlaunching_padsPRI, TASK_MODE);

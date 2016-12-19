@@ -33,23 +33,29 @@ void launching_pads_task()
       rt_printf("%s overrun!!!\n", curtaskinfo.name);
       break;
     }
-    if(to!=0)
-    {
-      rt_printf("%s Measured period (ns)= %lu\n", curtaskinfo.name, ta-to);
-    }
+    // if(to!=0)
+    // {
+    //   rt_printf("%s Measured period (ns)= %lu\n", curtaskinfo.name, ta-to);
+    // }
     to=ta;
-    if(enemy_missile->launched > 0 && !enemy_missile->destroyed)
+    if(enemy_missile->launched > 0 && enemy_missile->destroyed <= 0)
     {
       double t = (double)( (ta - enemy_missile->launched) / 1000000000.0 );
       enemy_missile->x = enemy_missile->vx * t + scenary.enemy_lp.x;
       enemy_missile->y = enemy_missile->vy * t - 5 * pow( t, 2 ) + scenary.enemy_lp.y;
     }
 
-    if(ally_missile->launched > 0 && !ally_missile->destroyed)
+    if(ally_missile->launched > 0 && ally_missile->destroyed <= 0)
     {
       double t = (double)( (ta - ally_missile->launched) / 1000000000.0 );
       ally_missile->x = ally_missile->vx * t + scenary.ally_lp.x;
       ally_missile->y = ally_missile->vy * t - 5 * pow( t, 2 ) + scenary.ally_lp.y;
+    }
+    if( (fabs(ally_missile->x - enemy_missile->x) < 6)  && (fabs(ally_missile->y - enemy_missile->y) < 6))
+    {
+      rt_printf("*\n*\n*\n*\n____________________\n*\n*\n*\n*");
+      ally_missile->destroyed = rt_timer_read();
+      enemy_missile->destroyed = ally_missile->destroyed;
     }
   }
   return;
